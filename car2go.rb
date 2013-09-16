@@ -11,14 +11,12 @@ module Car2Go
 	end
 
 	def my_location
-		factory.point(-122.682298, 45.522774)
+		factory.point(SiteConfig['longitude'], SiteConfig['latitude'])
 	end
 
 	def all_cars(limit = nil)
 	
-	  sp = File.read("consumer.key")
-		
-		json_data = RestClient.get 'http://www.car2go.com/api/v2.1/vehicles', {:params => {:oauth_consumer_key => sp, :loc => 'portland', :format => 'json'}}
+		json_data = RestClient.get 'http://www.car2go.com/api/v2.1/vehicles', {:params => {:oauth_consumer_key => SiteConfig['car2go_key'], :loc => 'portland', :format => 'json'}}
 		
 		placemarks = JSON.parse(json_data)
 		cars = placemarks["placemarks"]
