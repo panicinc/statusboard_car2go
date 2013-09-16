@@ -18,4 +18,4 @@ You'll need to install the [Proj4](https://trac.osgeo.org/proj/) library before 
 $ [sudo] bundle install
 ```
 
-If you'd like a stand-alone version of there you can try [Aaron's Sinatra fork](https://github.com/aaronpk/statusboard_car2go).
+If you'd like a stand-alone version you can try [Aaron's Sinatra fork](https://github.com/aaronpk/statusboard_car2go).
