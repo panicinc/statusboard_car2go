@@ -1,13 +1,13 @@
 car2go panels for Status Board
 ==============================
 
-* index.rb: a styled map showing the location of car2go vehicles near the Panic office
+* `/`: a styled map showing the location of car2go vehicles near the Panic office
 
-![Map screenshot](index_screenshot.png)
+![Map screenshot](public/index_screenshot.png)
 
-* count.rb: the number of car2go vehicles near the Panic office
+* `/count.`: the number of car2go vehicles near the Panic office
 
-![Count screenshot](count_screenshot.png)
+![Count screenshot](public/count_screenshot.png)
 
 Installation
 ------------
