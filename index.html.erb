@@ -1,0 +1,262 @@
+<html>
+	<head>
+		<title>Car2Go</title>
+		
+		<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.9.0/build/reset/reset-min.css">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<style>
+			body, html, *
+			{
+				-webkit-user-select: none !important;
+				-webkit-user-modify: none !important;
+				-webkit-user-drag: none !important;
+/* 				pointer-events: none !important; */
+			}
+			
+			img[src="https://maps.gstatic.com/mapfiles/google_white.png"]
+			{
+				opacity: 0 !important;
+			}
+			
+			.gmnoscreen, .gmnoprint
+			{
+				display: none !important;
+				opacity: 0 !important;
+			}
+
+			.car, .this_location
+			{
+				position: absolute;
+				overflow: hidden;
+				width: 64px;
+				height: 64px;
+				opacity: 1;
+				margin-top: -32px;
+				margin-left: -32px;
+			}
+
+			
+			.car_shape, .this_location_shape
+			{
+				position: absolute;
+				top: 20px;
+				left: 20px;
+				width: 20px;
+				height: 20px;
+				border-radius: 12px !important;
+				border-style: solid;
+				border-width: 2px;
+				background: red;				
+			}
+			.car_shape
+			{
+				background: #056fe7 -webkit-radial-gradient(#4d98ee, #056fe7);
+				border-color: #a4cfff;
+			}
+			.this_location_shape
+			{
+				background: #9d08c3 -webkit-radial-gradient(#b84dd3, #9d08c3);
+				border-color: #eca1ff;
+			}
+			
+			.car_glow
+			{
+				position: absolute;
+				top: -5px;
+				left: -5px;
+				width: 64px;
+				height: 64px;	
+				border-radius: 64px;
+				border-width: 5px;
+				border-style: solid;
+				opacity: 0;			
+
+				-webkit-animation-name: 'blip';
+				-webkit-animation-duration: 2.5s;
+				-webkit-animation-iteration-count: infinite;
+				-webkit-animation-timing-function: ease-in-out;			
+			}
+		
+			.car_glow {				
+				border-color: #6eb2ff;
+			}
+			
+			
+			@-webkit-keyframes 'blip'
+			{		
+				0% {
+					-webkit-transform: scale(.1);	
+					opacity: 0;
+				}
+				1% {
+					-webkit-transform: scale(.1);	
+					opacity: 1;
+				}
+				60% {
+					opacity: 0;
+					-webkit-transform: scale(1);
+				}
+				100% {
+					opacity: 0;
+					-webkit-transform: scale(1);
+				}
+			}			
+		</style>
+	</head>
+	<body>
+
+		<div id="map_canvas"></div>
+
+		<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script src="https://maps.googleapis.com/maps/api/js?sensor=false" type="text/javascript"></script>
+		<script src="map_features.js"></script>
+		<script>
+		
+		  var map;
+		  var overlay;
+			var markersArray = [];
+			
+			function clearOverlays() {
+			  for (var i = 0; i < markersArray.length; i++ ) {
+			    markersArray[i].setMap(null);
+			  }
+			}
+			
+		  function CustomMarker(lat, lng,  map, klass) {
+		  
+		  	if (!klass) {
+			  	klass = "car";
+		  	}
+		  
+		  	var latlng = new google.maps.LatLng(lat, lng);
+		    this.latlng_ = latlng;
+		    this.klass_ = klass;
+		
+		    // Once the LatLng and text are set, add the overlay to the map.  This will
+		    // trigger a call to panes_changed which should in turn call draw.
+		    this.setMap(map);
+		  }
+		
+		  CustomMarker.prototype = new google.maps.OverlayView();
+
+		  CustomMarker.prototype.draw = function() {
+		    var me = this;
+		
+		    // Check if the div has been created.
+		    var div = this.div_;
+		    if (!div) {
+		      // Create a overlay text DIV
+		      div = this.div_ = document.createElement('DIV');
+		      // Create the DIV representing our CustomMarker
+		      div.style.border = "none";
+		      div.style.position = "absolute";
+		      div.style.paddingLeft = "0px";
+		      
+		      // Add the inner and outer DIVs, needed to animate the "blip"
+		      glow_div = document.createElement('div');
+		      glow_div.className = this.klass_ + '_glow';
+		      div.appendChild(glow_div);
+		      
+		      shape_div = document.createElement('div');
+		      shape_div.className = this.klass_ + '_shape';
+		      div.appendChild(shape_div);
+		      
+/* 		      $(div).text("O"); */
+		      $(div).addClass(this.klass_);
+		      
+		      // Then add the overlay to the DOM
+		      var panes = this.getPanes();
+		      panes.overlayImage.appendChild(div);
+		    }
+		
+		    // Position the overlay 
+		    var point = this.getProjection().fromLatLngToDivPixel(this.latlng_);
+		    if (point) {
+		      div.style.left = point.x + 'px';
+		      div.style.top = point.y + 'px';
+		    }
+		  };
+
+		  CustomMarker.prototype.remove = function() {
+		    // Check if the overlay was on the map and needs to be removed.
+		    if (this.div_) {
+		      this.div_.parentNode.removeChild(this.div_);
+		      this.div_ = null;
+		    }
+		  };
+		
+		  CustomMarker.prototype.getPosition = function() {
+		   return this.latlng_;
+		  };
+		
+			function drawPanic() {
+				// Our position
+				
+		    overlay = new CustomMarker(<%= my_location.lat %>, <%= my_location.longitude %>, map, "this_location");
+		    overlay.setMap(map);
+
+			}
+
+			function drawCars() {
+			
+				$.getJSON("index.rb",{carData: "1"},function(cars){
+				
+					clearOverlays();
+					for (c = 0; c < cars.length; c++)
+					{
+						console.log(cars[c]["coordinates"][0]);
+				    overlay = new CustomMarker(cars[c]["coordinates"][1],cars[c]["coordinates"][0], map, "car");
+				    markersArray.push(overlay);
+				    overlay.setMap(map);
+					}
+					
+				});
+			}
+
+			function initialize() {
+	
+				var MY_MAPTYPE_ID = 'custom_style';
+				
+				resize_canvas();
+				
+				var myOptions = {
+					zoom: 15,
+					center: new google.maps.LatLng(<%= my_location.lat %>, <%= my_location.longitude %>),
+					disableDefaultUI: true,
+/* 					mapTypeId: google.maps.MapTypeId.ROADMAP */
+					mapTypeId: MY_MAPTYPE_ID
+				};
+				
+				map = new google.maps.Map(document.getElementById('map_canvas'), myOptions);
+				
+				// Style the map
+				var styledMapOptions = {
+					name: 'SB Style'
+				};
+				
+				var customMapType = new google.maps.StyledMapType(featureOpts, styledMapOptions);
+	 			map.mapTypes.set(MY_MAPTYPE_ID, customMapType);
+
+				drawPanic();
+				
+				drawCars();				
+
+				$(window).resize(function() {
+				  resize_canvas();
+				});
+			
+				setInterval(function() {
+	      	drawCars();
+	      }, 60000);	
+			}
+			
+			function resize_canvas() {
+				$("#map_canvas").height($(window).height());
+			}
+			
+			google.maps.event.addDomListener(window, 'load', initialize);
+
+		</script>
+
+	</body>
+</html>
