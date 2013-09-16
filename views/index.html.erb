@@ -199,7 +199,7 @@
 
 			function drawCars() {
 			
-				$.getJSON("index.rb",{carData: "1"},function(cars){
+				$.getJSON("/data.json",function(cars){
 				
 					clearOverlays();
 					for (c = 0; c < cars.length; c++)
