@@ -124,8 +124,9 @@ html{color:#000;background:#FFF}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre
 			
 			function clearOverlays() {
 			  for (var i = 0; i < markersArray.length; i++ ) {
-			    markersArray[i].setMap(null);
+			    markersArray[i].remove();
 			  }
+			  markersArray.length = 0;
 			}
 			
 		  function CustomMarker(lat, lng,  map, klass) {
@@ -146,7 +147,6 @@ html{color:#000;background:#FFF}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre
 		  CustomMarker.prototype = new google.maps.OverlayView();
 
 		  CustomMarker.prototype.draw = function() {
-		    var me = this;
 		
 		    // Check if the div has been created.
 		    var div = this.div_;
@@ -189,6 +189,7 @@ html{color:#000;background:#FFF}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre
 		      this.div_.parentNode.removeChild(this.div_);
 		      this.div_ = null;
 		    }
+		    this.setMap(null);
 		  };
 		
 		  CustomMarker.prototype.getPosition = function() {
@@ -208,9 +209,10 @@ html{color:#000;background:#FFF}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre
 				$.getJSON("index.rb",{carData: "1"},function(cars){
 				
 					clearOverlays();
-					for (c = 0; c < cars.length; c++)
+					console.log("Fetching Cars");
+					for (c = 0; c < cars.length - 1; c++)
 					{
-						console.log(cars[c]["coordinates"][0]);
+/* 						console.log(cars[c]["coordinates"][0]); */
 				    overlay = new CustomMarker(cars[c]["coordinates"][1],cars[c]["coordinates"][0], map, "car");
 				    markersArray.push(overlay);
 				    overlay.setMap(map);
